@@ -118,3 +118,6 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   the first run created a valid `.desktop` entry (desktop-file-validate passes) and icon; moving the file and relaunching
   updated `Exec` both ways. A second launch re-shows a hidden dial and exits (tested from source). The Windows shortcut is
   covered by unit tests with a fake PowerShell only.
+- v0.1.1 released 2026-11-21: https://github.com/jonathanw82/claude-usage-dial/releases/tag/v0.1.1 (AppImage 57 MB,
+  exe 38 MB, macOS zip 27 MB). The CI-built AppImage is installed in ~/Applications on the dev machine. Opening it via
+  `gtk-launch claude-usage-dial` while it was running kept one copy.
