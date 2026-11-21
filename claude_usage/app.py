@@ -5,9 +5,10 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QTimer, Signal
-from PySide6.QtGui import QAction, QFontDatabase
-from PySide6.QtWidgets import QApplication, QMenu
+from PySide6.QtCore import QByteArray, QObject, Qt, QTimer, Signal
+from PySide6.QtGui import QAction, QFontDatabase, QIcon, QImage, QPainter, QPixmap
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from . import core, settings
 from .credentials import UsageError
@@ -20,6 +21,24 @@ def load_fonts():
     """Register the bundled Ubuntu fonts so the dial looks the same on every OS."""
     for f in sorted(FONT_DIR.glob("*.ttf")):
         QFontDatabase.addApplicationFont(str(f))
+
+
+def svg_pixmap(svg, px):
+    img = QImage(px, px, QImage.Format_ARGB32_Premultiplied)
+    img.fill(Qt.transparent)
+    p = QPainter(img)
+    p.setRenderHint(QPainter.Antialiasing)
+    QSvgRenderer(QByteArray(svg.encode())).render(p)
+    p.end()
+    return QPixmap.fromImage(img)
+
+
+def ring_icon(pct, warn, crit):
+    """Tray icon at the sizes trays commonly ask for (sharp on HiDPI too)."""
+    icon = QIcon()
+    for px in (16, 22, 24, 32, 44, 48, 64):
+        icon.addPixmap(svg_pixmap(core.ring_svg(pct, px=px, warn=warn, crit=crit), px))
+    return icon
 
 
 class _Bridge(QObject):
@@ -39,6 +58,13 @@ class App(QObject):
         self.bridge.done.connect(self._done)
 
         self.menu = self._build_menu()
+        self.tray = None
+        if QSystemTrayIcon.isSystemTrayAvailable():
+            self.tray = QSystemTrayIcon(self)
+            self.tray.setContextMenu(self.menu)
+            self.tray.activated.connect(self._tray_clicked)
+            self.tray.setIcon(ring_icon(None, self.cfg["warn"], self.cfg["crit"]))
+            self.tray.show()
         self.dial = DialWindow(self.menu, self.cfg["size"], (self.cfg["x"], self.cfg["y"])
                                if self.cfg["x"] is not None else None, self.cfg["on_top"])
         self.dial.geometry_changed.connect(self._save_geometry)
@@ -48,7 +74,9 @@ class App(QObject):
         self.timer.start(self.cfg["refresh_min"] * 60_000)
         self.tick = QTimer(self, timeout=self.render, interval=30_000)  # countdowns
         self.tick.start()
-        if self.cfg["show_dial_at_start"]:
+        self.act_on_top.setChecked(self.cfg["on_top"])
+        # With no tray (some Linux desktops), the dial is the only way in, so always show it.
+        if self.cfg["show_dial_at_start"] or self.tray is None:
             self.show_dial()
         self.render()
         self.refresh()
@@ -57,14 +85,41 @@ class App(QObject):
 
     def _build_menu(self):
         menu = QMenu()
+        self.act_session = QAction("Session: …", menu, enabled=False)
+        self.act_week = QAction("Week: …", menu, enabled=False)
+        self.act_status = QAction("Loading…", menu, enabled=False)
+        self.act_show = QAction("Show dial", menu, triggered=self.toggle_dial)
+        self.act_on_top = QAction("Always on top", menu, checkable=True,
+                                  toggled=self.set_on_top)
         self.act_refresh = QAction("Refresh now", menu, triggered=self.refresh)
         self.act_quit = QAction("Quit", menu, triggered=self.quit)
-        menu.addAction(self.act_refresh)
+        for a in (self.act_session, self.act_week, self.act_status):
+            menu.addAction(a)
+        menu.addSeparator()
+        for a in (self.act_show, self.act_on_top, self.act_refresh):
+            menu.addAction(a)
         menu.addSeparator()
         menu.addAction(self.act_quit)
+        menu.aboutToShow.connect(  # the dial can be hidden with Esc/double-click meanwhile
+            lambda: self.act_show.setText("Hide dial" if self.dial.isVisible() else "Show dial"))
         return menu
 
+    def _tray_clicked(self, reason):
+        if reason == QSystemTrayIcon.Trigger:  # left click (where the desktop reports it)
+            self.toggle_dial()
+
     # -- actions -----------------------------------------------------------
+
+    def toggle_dial(self):
+        if self.dial.isVisible():
+            self.dial.hide()
+        else:
+            self.show_dial()
+
+    def set_on_top(self, on):
+        self.cfg["on_top"] = on
+        self.dial.set_on_top(on)
+        settings.save(self.cfg)
 
     def show_dial(self):
         self.dial.show()
@@ -108,8 +163,20 @@ class App(QObject):
 
     def render(self):
         usage = None if self.error else self.usage
-        self.dial.update_data(usage, self.error, self.updated,
-                              (self.cfg["warn"], self.cfg["crit"]))
+        warn, crit = self.cfg["warn"], self.cfg["crit"]
+        self.dial.update_data(usage, self.error, self.updated, (warn, crit))
+        s_pct, s_reset = usage["session"] if usage else (None, None)
+        w_pct, w_reset = usage["week"] if usage else (None, None)
+        self.act_session.setText(f"Session: {core.fmt_pct(s_pct)} — {core.fmt_reset(s_reset)}")
+        self.act_week.setText(f"Week: {core.fmt_pct(w_pct)} — {core.fmt_reset(w_reset)}")
+        self.act_status.setText(self.error or (
+            f"Updated {self.updated:%H:%M:%S}" if self.updated else "Loading…"))
+        self.act_show.setText("Hide dial" if self.dial.isVisible() else "Show dial")
+        if self.tray:
+            self.tray.setIcon(ring_icon(s_pct, warn, crit))
+            self.tray.setToolTip(f"Claude usage\nSession {core.fmt_pct(s_pct)} · "
+                                 f"Week {core.fmt_pct(w_pct)}"
+                                 + (f"\n{self.error}" if self.error else ""))
 
 
 def main(argv=None):

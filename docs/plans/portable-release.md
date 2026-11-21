@@ -43,7 +43,7 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
       to a circle** (fixes the corners catching clicks). Drag to move, rim-resize, double-click/Esc to hide, right-click menu,
       size/position/on-top remembered (JSON in the OS config dir)
   - Verify: run from `.venv` on this machine and take screenshots at 360 and 600 px. Check that position and size persist.
-- [ ] 4. Tray icon + menu: a ring with the session % drawn in, both numbers in the tooltip, and the menu: Show dial /
+- [x] 4. Tray icon + menu: a ring with the session % drawn in, both numbers in the tooltip, and the menu: Show dial /
       Setup… / Always on top / Refresh / Quit
   - Verify: screenshot of the Ubuntu top bar at the real % and at a forced 80 %
 - [ ] 5. Setup window:
@@ -82,3 +82,6 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   stays square). Moving uses `startSystemMove` (works on Wayland), with a manual fallback. Checked live at 360/600 px
   on 2× X11; screenshots need xwininfo + GDK because Qt's grabWindow breaks on this mixed-monitor layout. Drag and resize by
   hand **not yet tested**. Settings now live in `~/.config/claude-usage-dial/settings.json`.
+- Step 4: Qt's tray talks to the desktop directly over DBus (StatusNotifierItem), so no libappindicator is needed. Checked on
+  Ubuntu: a "33" teal ring with the real value and an "80" amber ring when forced, and the tooltip shows both numbers. If there's no
+  tray, the dial always shows at startup so the user isn't left with nothing.
