@@ -55,3 +55,13 @@
 - **Why:** Claude Code on macOS stores its login in the Keychain, and `security` needs no extra dependency.
   QtSvg ignores font fallback lists, so without a bundled font the dial would look different on each OS.
 - **Unverified:** the Keychain path hasn't been tested on a real Mac.
+
+## 2026-11-21 — Menu entry on first run; single instance via QLocalServer
+- **Decision:** packaged builds add a Start-menu shortcut (Windows, via WScript.Shell in PowerShell) or an
+  app-menu `.desktop` entry plus icon (Linux) on first run. They re-point it (and start-at-login) if the app file
+  has moved since the last launch. A second launch hands off to the running copy over a per-user `QLocalServer`.
+- **Why:** an AppImage or a lone .exe doesn't otherwise appear in any menu. Once a menu entry exists, clicking it while the app
+  runs would start a duplicate copy with two tray icons.
+- **Rejected:** a lock file only (it can't bring the existing dial forward); bundling `pywin32` for the shortcut (a heavy
+  extra dependency for one call); AppImageLauncher-style integration (it's a separate tool users would have to install).
+- **Cost:** QtNetwork is back in the bundle (a few MB).

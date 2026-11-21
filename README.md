@@ -37,6 +37,14 @@ The first time it runs, a **Setup** window opens. It checks that Claude Code is 
 lets you test the connection, and has your preferences, including *Start when I log in*.
 You can reopen it at any time from the tray menu (*Setup…*).
 
+On **Windows and Linux**, the first run also adds **Claude Usage Dial** with its icon to the **Start menu /
+app menu**, so you can open it from there next time. On Linux, keep the AppImage somewhere permanent (for
+example `~/Applications`). If you move it later, just run it once from its new place and the menu entry follows.
+You can turn this off in Setup (*Show in the Start menu / app menu*). On **macOS**, moving the app to
+Applications already puts it in Launchpad.
+
+Opening it again while it's already running just brings the dial to the front, so you won't get a second copy.
+
 ## Using the dial
 
 - **Move:** drag the face. **Resize:** drag the outer rim (it stays round).
@@ -75,7 +83,8 @@ show an error until the app is updated.
 
 ## Uninstall
 
-1. In **Setup**, untick *Start when I log in*, then choose *Quit* from the tray menu.
+1. In **Setup**, untick *Start when I log in* and *Show in the Start menu / app menu*, then choose *Quit*
+   from the tray menu.
 2. Delete the downloaded file (or the app from Applications).
 3. Optionally, delete its settings folder:
    - Linux: `~/.config/claude-usage-dial`

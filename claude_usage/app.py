@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QByteArray, QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QFontDatabase, QIcon, QImage, QPainter, QPixmap
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
@@ -259,6 +260,47 @@ def self_test():
     return 0 if all(checks.values()) else 1
 
 
+def _instance_name():
+    import getpass
+    import re
+    try:
+        user = getpass.getuser()
+    except Exception:
+        user = "user"
+    return "claude-usage-dial-" + re.sub(r"[^A-Za-z0-9_-]", "_", user)
+
+
+def already_running():
+    """If another copy is running, ask it to show its dial and return True."""
+    sock = QLocalSocket()
+    sock.connectToServer(_instance_name())
+    if not sock.waitForConnected(500):
+        return False
+    sock.write(b"show")
+    sock.waitForBytesWritten(1000)
+    sock.disconnectFromServer()
+    return True
+
+
+def listen_for_others(app):
+    """Let later launches (e.g. from the Start/app menu) bring this copy's dial forward."""
+    name = _instance_name()
+    server = QLocalServer(app)
+    server.setSocketOptions(QLocalServer.UserAccessOption)
+    if not server.listen(name):
+        QLocalServer.removeServer(name)  # stale socket left by a crash
+        server.listen(name)
+
+    def on_connection():
+        conn = server.nextPendingConnection()
+        if conn is not None:
+            conn.readyRead.connect(lambda: (conn.readAll(), app.show_dial()))
+            conn.disconnected.connect(conn.deleteLater)
+
+    server.newConnection.connect(on_connection)
+    return server
+
+
 def main(argv=None):
     argv = sys.argv if argv is None else argv
     if "--self-test" in argv:
@@ -272,5 +314,8 @@ def main(argv=None):
     load_fonts()
     if "--self-test" in argv:
         return self_test()
-    app = App(qapp)  # noqa: F841 - keep a reference for the event loop's lifetime
+    if already_running():
+        return 0
+    app = App(qapp)
+    app.instance_server = listen_for_others(app)  # keep a reference
     return qapp.exec()

@@ -113,3 +113,8 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - Step 8 done 2026-11-21: tagged v0.1.0. The release workflow passed on all three OSes and attached the AppImage (57 MB), the
   Windows exe (35 MB) and the macOS arm64 zip (26 MB): https://github.com/jonathanw82/claude-usage-dial/releases/tag/v0.1.0
   The old GTK install (`~/.local/bin/claude-usage`, its menu and autostart entries, cache and config) has been removed from the dev machine.
+- v0.1.1 (2026-11-21, approved by the user): Start/app-menu entry with icon on first run (Windows and Linux), a Setup tick-box,
+  re-pointing when the app moves, and single-instance hand-off. Verified on Linux with a CI-built AppImage in ~/Applications:
+  the first run created a valid `.desktop` entry (desktop-file-validate passes) and icon; moving the file and relaunching
+  updated `Exec` both ways. A second launch re-shows a hidden dial and exits (tested from source). The Windows shortcut is
+  covered by unit tests with a fake PowerShell only.

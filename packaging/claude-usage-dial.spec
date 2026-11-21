@@ -15,8 +15,8 @@ a = Analysis(
     pathex=[str(ROOT)],
     datas=[(str(ROOT / "claude_usage" / "fonts"), "claude_usage/fonts"),
            (str(ROOT / "claude_usage" / "icon.png"), "claude_usage")],
-    # Only QtCore/Gui/Widgets/Svg are used; keep the rest of Qt out of the bundle.
-    excludes=["PySide6.QtNetwork", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtPdf",
+    # Only QtCore/Gui/Widgets/Svg/Network (local socket) are used; keep the rest of Qt out.
+    excludes=["PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtPdf",
               "PySide6.QtOpenGL", "tkinter"],
 )
 # Linux: leave out Qt's GTK theme plugin and the GTK stack it drags in (not needed, and a
