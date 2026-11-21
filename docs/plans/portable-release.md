@@ -1,0 +1,73 @@
+# Plan: portable, downloadable release (Linux, Windows, Mac) + Setup window
+
+Goal: anyone can download one file from GitHub and run the Claude usage dial with nothing else
+installed except Claude Code (signed in). Add a Setup window to guide new users.
+
+Choices made (2026-11-21):
+- **Platforms:** Linux, Windows and Mac. The UI is ported from GTK to **Qt (PySide6)**, bundled with **PyInstaller**.
+- **Distribution:** a public **GitHub repo**. GitHub Actions builds the downloads for each release.
+- **Setup window:** a separate window, opened from the tray menu. It opens by itself on first run and whenever data fails.
+  It has four sections: requirements check, test connection, preferences and a privacy notice.
+
+## What carries over unchanged
+`dial_svg`, `ring_svg`, `fetch_usage`, the formatting helpers and the colours/thresholds: the face you
+approved stays exactly the same. Only the GTK window, indicator and installer get replaced.
+
+## Limits we can't bundle away (to state in the README)
+- Each user needs **Claude Code installed and signed in**. The app reads its login and does not sign in itself.
+- **Tray icon text:** Qt tray icons are images only. The `S x% · W y%` label becomes an icon with the
+  session % drawn inside the ring; the tooltip and menu show both numbers.
+- **Linux tray:** needs desktop support. Ubuntu has it built in. Plain GNOME on Fedora or Debian needs the
+  "AppIndicator" extension. The dial window works either way.
+- **Wayland (Linux):** apps can't set their own position or stay above other windows there. On Wayland, the remembered
+  position and always-on-top won't apply. Ubuntu's default X11/Xorg session is fine.
+- **Unsigned downloads:** Windows SmartScreen and macOS Gatekeeper will warn on first launch
+  ("More info → Run anyway", or right-click → Open on Mac). Signing would need paid certificates (Apple $99/yr).
+- **Mac login storage:** Claude Code on macOS keeps its token in the Keychain (service
+  `Claude Code-credentials`). The app reads it with the `security` tool, and macOS asks the user to allow it once.
+  **Unverified**: I have no Mac here, so this needs a Mac user to test.
+- The usage endpoint is unofficial and could change.
+
+## Steps (one commit each; tests and lint green before each)
+
+- [ ] 0. `git init`, `.gitignore` (`.venv/`, `build/`, `dist/`, `__pycache__/`), commit the current GTK version as a baseline
+  - Verify: `git log` shows the baseline commit
+- [ ] 1. Restructure into a package: `claude_usage/core.py` (no GUI: credentials, fetch, formatting, SVGs),
+      `.venv` + `requirements.txt` (pinned PySide6, pytest, ruff, pyinstaller)
+  - Verify: `pytest` covers the parser (using a fixture from the real response shape), formatting, and that `dial_svg`
+    is well-formed XML at 0/52/100 % and in the error state. `ruff check` is clean.
+- [ ] 2. Per-OS credentials: file on Linux/Windows (respects `CLAUDE_CONFIG_DIR`), Keychain on macOS
+      with a file fallback, plus clear error messages for "Claude Code not installed" and "not signed in"
+  - Verify: unit tests with mocked files and a mocked `security` command. A live check on Linux.
+- [ ] 3. Qt dial window: frameless, translucent, painted with `QSvgRenderer` at device pixels, and **masked
+      to a circle** (fixes the corners catching clicks). Drag to move, rim-resize, double-click/Esc to hide, right-click menu,
+      size/position/on-top remembered (JSON in the OS config dir)
+  - Verify: run from `.venv` on this machine and take screenshots at 360 and 600 px. Check that position and size persist.
+- [ ] 4. Tray icon + menu: a ring with the session % drawn in, both numbers in the tooltip, and the menu: Show dial /
+      Setup… / Always on top / Refresh / Quit
+  - Verify: screenshot of the Ubuntu top bar at the real % and at a forced 80 %
+- [ ] 5. Setup window:
+      - **Requirements:** ✓/✗ for Claude Code found and signed in, each with the fix spelled out, and a Re-check button
+      - **Test connection:** fetches once and shows the result or a plain-English error
+      - **Preferences:** start at login (Linux autostart `.desktop`, Windows `HKCU\…\Run`, macOS
+        LaunchAgent), refresh interval, amber/red thresholds, always on top, show dial at startup
+      - **Privacy notice**
+      - Opens automatically on first run and on fetch errors (at most once per error, so it doesn't nag)
+  - Verify: screenshots of each state on Linux (renaming the credentials file for the ✗ state, then restoring it). Each start-at-login
+    writer is unit-tested.
+- [ ] 6. Packaging: PyInstaller spec (only the Qt modules needed, to keep it small) and a `--self-test` flag
+      (renders the dial offscreen and exits 0). GitHub Actions on tag `v*`: Linux **AppImage** (built on
+      Ubuntu 22.04 for wide compatibility), Windows **.exe**, macOS **.app** in a zip, all attached to the Release
+  - Verify: build the AppImage locally and run it with a clean environment on this machine. CI runs `--self-test` on all three OSes.
+    Real Windows/Mac testing needs someone with those machines. **This is a gap I can't close from here.**
+- [ ] 7. Docs: rewrite the README for end users (download, first run, the warnings above, uninstall), add a LICENSE,
+      update `docs/decisions.md` (GTK→Qt, PyInstaller, per-OS credentials), and remove the GTK script and `install.sh`
+  - Verify: follow the README from scratch using the built AppImage
+- [ ] 8. **User confirms**, then create the public GitHub repo, push, and tag `v0.1.0` to trigger the first release build
+  - Verify: the Release page has three downloads; download the Linux one and run it
+
+## Open questions (answer before step 7)
+- **License:** MIT (anyone can use and modify it, with credit) is my suggestion.
+- **Repo name and app name:** e.g. `claude-usage-dial`.
+
+## Deviations / notes
