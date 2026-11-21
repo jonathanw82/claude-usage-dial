@@ -55,12 +55,12 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
       - Opens automatically on first run and on fetch errors (at most once per error, so it doesn't nag)
   - Verify: screenshots of each state on Linux (renaming the credentials file for the ✗ state, then restoring it). Each start-at-login
     writer is unit-tested.
-- [ ] 6. Packaging: PyInstaller spec (only the Qt modules needed, to keep it small) and a `--self-test` flag
+- [x] 6. Packaging: PyInstaller spec (only the Qt modules needed, to keep it small) and a `--self-test` flag
       (renders the dial offscreen and exits 0). GitHub Actions on tag `v*`: Linux **AppImage** (built on
       Ubuntu 22.04 for wide compatibility), Windows **.exe**, macOS **.app** in a zip, all attached to the Release
   - Verify: build the AppImage locally and run it with a clean environment on this machine. CI runs `--self-test` on all three OSes.
     Real Windows/Mac testing needs someone with those machines. **This is a gap I can't close from here.**
-- [ ] 7. Docs: rewrite the README for end users (download, first run, the warnings above, uninstall), add a LICENSE,
+- [x] 7. Docs: rewrite the README for end users (download, first run, the warnings above, uninstall), add a LICENSE,
       update `docs/decisions.md` (GTK→Qt, PyInstaller, per-OS credentials), and remove the GTK script and `install.sh`
   - Verify: follow the README from scratch using the built AppImage
 - [ ] 8. **User confirms**, then create the public GitHub repo, push, and tag `v0.1.0` to trigger the first release build
@@ -102,3 +102,11 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - Step 7 (docs done, verification pending): the README has been rewritten for end users, plus an MIT LICENSE (holder: "claude-usage-dial
   contributors"), new decisions, and README images rendered offscreen. The GTK `claude_usage.py` and `install.sh` are removed,
   and the old plans are marked superseded. Still to do: follow the README with a real built AppImage (blocked as in step 6).
+- Step 6/7 verified 2026-11-21 via CI instead of a local build (the user chose this). Run 44904823380 passed on all three OSes,
+  and the self-test passed on each. Download sizes: Linux AppImage 56 MB, Windows exe 35 MB, macOS zip 26 MB. The CI-built
+  AppImage (built on 22.04) ran on this 24.04 machine: self-test ok; live with a fresh config it showed real data, the tray
+  ring, the dial centred on the main screen, Setup on first run, and settings saved. CI fixes: the script was missing its
+  exec bit, and the macos-14 runner was retired (now macos-15).
+- Step 8 (partial): public repo https://github.com/jonathanw82/claude-usage-dial created and `main` pushed. Commits
+  were rewritten first to use the GitHub noreply email (the user's choice), and that email is now set in this repo's git config.
+  **Not yet done:** tagging v0.1.0 to publish a Release (needs user OK). Real Windows/Mac hands-on testing is still outstanding.
