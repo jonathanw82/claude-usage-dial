@@ -170,14 +170,13 @@ def dial_svg(usage, error=None, updated=None, px=400, warn=WARN_PCT, crit=CRIT_P
         '<filter id="glow" x="-40%" y="-40%" width="180%" height="180%">'
         '<feGaussianBlur stdDeviation="2.6" result="b"/>'
         '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
-        '<clipPath id="faceclip"><circle cx="200" cy="200" r="184"/></clipPath>'
         '</defs>')
 
     # bezel + face
     add('<circle cx="200" cy="200" r="198" fill="url(#bezel)"/>')
     add('<circle cx="200" cy="200" r="190" fill="#040506"/>')
     add('<circle cx="200" cy="200" r="184" fill="url(#face)"/>')
-    add('<rect width="400" height="400" fill="url(#hatch)" clip-path="url(#faceclip)"/>')
+    add('<circle cx="200" cy="200" r="184" fill="url(#hatch)"/>')  # (QtSvg ignores clip-path here)
     add('<circle cx="200" cy="200" r="183.5" fill="none" stroke="#ffffff" stroke-opacity=".06"/>')
 
     # top segmented arcs = week %

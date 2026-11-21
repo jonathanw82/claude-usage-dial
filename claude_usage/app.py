@@ -212,10 +212,40 @@ class App(QObject):
                                  + (f"\n{self.error}" if self.error else ""))
 
 
+def self_test():
+    """Check a build works without a screen or network: fonts, dial and tray icon render.
+    Used by CI on every OS. Returns a process exit code."""
+    from datetime import timedelta, timezone
+
+    from PySide6.QtGui import QFontInfo
+
+    from .setup_window import SetupWindow
+    now = datetime.now(timezone.utc)
+    usage = {"session": (42.0, now + timedelta(hours=2)), "week": (64.0, now + timedelta(days=3))}
+    checks = {}
+    families = set(QFontDatabase.families())
+    checks["bundled font"] = "Ubuntu" in families
+    img = svg_pixmap(core.dial_svg(usage, updated=datetime.now(), px=200), 200).toImage()
+    checks["dial renders"] = img.pixelColor(100, 100).alpha() == 255 and \
+        img.pixelColor(1, 1).alpha() == 0  # opaque face, transparent corner
+    checks["tray icon renders"] = not ring_icon(42.0, 75, 90).isNull()
+    checks["setup window builds"] = SetupWindow(settings.load()) is not None
+    checks["font resolves"] = QFontInfo(QApplication.font()).family() != ""
+    for name, ok in checks.items():
+        print(f"{'ok  ' if ok else 'FAIL'} {name}")
+    return 0 if all(checks.values()) else 1
+
+
 def main(argv=None):
-    qapp = QApplication(sys.argv if argv is None else argv)
+    argv = sys.argv if argv is None else argv
+    if "--self-test" in argv:
+        import os
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    qapp = QApplication(argv)
     qapp.setApplicationName(settings.APP_DIR_NAME)
     qapp.setQuitOnLastWindowClosed(False)  # hiding the dial must not quit the app
     load_fonts()
+    if "--self-test" in argv:
+        return self_test()
     app = App(qapp)  # noqa: F841 - keep a reference for the event loop's lifetime
     return qapp.exec()

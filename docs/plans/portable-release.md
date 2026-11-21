@@ -92,3 +92,10 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   Known cosmetic gap: Qt over-estimates the wrapped-text height, which leaves some empty space above Close.
   Two attempts didn't fix it, so it's left for now. Screenshots now use `QWidget.grab()`, because a screen capture picked up
   another window that was in front.
+- Step 6 (in progress): `--self-test` passes from source and from the PyInstaller folder build. The bundle is 131 MB unpacked
+  (31 MB of that is Qt's ICU data). It leaves out GTK, its theme plugin and font libraries (AppImage excludelist) and Qt translations.
+  The bundled build ran live on Ubuntu with no errors and its tray icon showed. Fixes found on the way: the hatch texture
+  spilled past the circle (QtSvg ignores clip-path there; now drawn as a circle), and on first run the dial opened at
+  0,0 on the side monitor (now centred on the main screen). appimagetool 1.9.1 and runtime 20251108 are pinned by SHA-256.
+  **Blocked:** running appimagetool locally was denied by the auto-mode safety check, so the AppImage itself is
+  not yet built or tested. macOS build is Apple silicon only (no Intel Macs) for now.

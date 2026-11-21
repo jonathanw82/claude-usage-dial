@@ -38,6 +38,10 @@ class DialWindow(QWidget):
         self.resize(size, size)
         if pos and self._on_a_screen(pos, size):
             self.move(*pos)
+        else:  # first run (or its monitor is gone): centre on the main screen
+            screen = QGuiApplication.primaryScreen()
+            if screen is not None:
+                self.move(screen.availableGeometry().center() - QPoint(size // 2, size // 2))
         self._render()
 
     # -- state -------------------------------------------------------------
