@@ -63,7 +63,7 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - [x] 7. Docs: rewrite the README for end users (download, first run, the warnings above, uninstall), add a LICENSE,
       update `docs/decisions.md` (GTK→Qt, PyInstaller, per-OS credentials), and remove the GTK script and `install.sh`
   - Verify: follow the README from scratch using the built AppImage
-- [ ] 8. **User confirms**, then create the public GitHub repo, push, and tag `v0.1.0` to trigger the first release build
+- [x] 8. **User confirms**, then create the public GitHub repo, push, and tag `v0.1.0` to trigger the first release build
   - Verify: the Release page has three downloads; download the Linux one and run it
 
 ## Open questions (answer before step 7)
@@ -110,3 +110,6 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - Step 8 (partial): public repo https://github.com/jonathanw82/claude-usage-dial created and `main` pushed. Commits
   were rewritten first to use the GitHub noreply email (the user's choice), and that email is now set in this repo's git config.
   **Not yet done:** tagging v0.1.0 to publish a Release (needs user OK). Real Windows/Mac hands-on testing is still outstanding.
+- Step 8 done 2026-11-21: tagged v0.1.0. The release workflow passed on all three OSes and attached the AppImage (57 MB), the
+  Windows exe (35 MB) and the macOS arm64 zip (26 MB): https://github.com/jonathanw82/claude-usage-dial/releases/tag/v0.1.0
+  The old GTK install (`~/.local/bin/claude-usage`, its menu and autostart entries, cache and config) has been removed from the dev machine.
