@@ -46,7 +46,7 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - [x] 4. Tray icon + menu: a ring with the session % drawn in, both numbers in the tooltip, and the menu: Show dial /
       Setup… / Always on top / Refresh / Quit
   - Verify: screenshot of the Ubuntu top bar at the real % and at a forced 80 %
-- [ ] 5. Setup window:
+- [x] 5. Setup window:
       - **Requirements:** ✓/✗ for Claude Code found and signed in, each with the fix spelled out, and a Re-check button
       - **Test connection:** fetches once and shows the result or a plain-English error
       - **Preferences:** start at login (Linux autostart `.desktop`, Windows `HKCU\…\Run`, macOS
@@ -85,3 +85,10 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - Step 4: Qt's tray talks to the desktop directly over DBus (StatusNotifierItem), so no libappindicator is needed. Checked on
   Ubuntu: a "33" teal ring with the real value and an "80" amber ring when forced, and the tooltip shows both numbers. If there's no
   tray, the dial always shows at startup so the user isn't left with nothing.
+- Step 5: The Setup window was checked in both states. ✓ uses the real login and a live "Test now" (37 %/57 %). ✗ uses
+  `CLAUDE_CONFIG_DIR` pointed at an empty folder (safer than renaming the real credentials file) plus a stubbed
+  `find_claude_code`. Preferences apply immediately. Setup opens on first run and once per distinct fetch error.
+  Start-at-login writers are unit-tested for all 3 OSes with a fake winreg; real Windows/Mac **untested**.
+  Known cosmetic gap: Qt over-estimates the wrapped-text height, which leaves some empty space above Close.
+  Two attempts didn't fix it, so it's left for now. Screenshots now use `QWidget.grab()`, because a screen capture picked up
+  another window that was in front.

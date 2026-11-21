@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 from . import core, settings
 from .credentials import UsageError
 from .dial import DialWindow
+from .setup_window import SetupWindow
 
 FONT_DIR = Path(__file__).with_name("fonts")
 
@@ -54,6 +55,8 @@ class App(QObject):
         self.error = None
         self.updated = None
         self.busy = False
+        self.setup = None
+        self._error_prompted = None  # the error we last opened Setup for (to avoid nagging)
         self.bridge = _Bridge()
         self.bridge.done.connect(self._done)
 
@@ -80,6 +83,8 @@ class App(QObject):
             self.show_dial()
         self.render()
         self.refresh()
+        if not self.cfg["setup_seen"]:  # first run: guide the user
+            self.open_setup()
 
     # -- menu --------------------------------------------------------------
 
@@ -89,6 +94,7 @@ class App(QObject):
         self.act_week = QAction("Week: …", menu, enabled=False)
         self.act_status = QAction("Loading…", menu, enabled=False)
         self.act_show = QAction("Show dial", menu, triggered=self.toggle_dial)
+        self.act_setup = QAction("Setup…", menu, triggered=self.open_setup)
         self.act_on_top = QAction("Always on top", menu, checkable=True,
                                   toggled=self.set_on_top)
         self.act_refresh = QAction("Refresh now", menu, triggered=self.refresh)
@@ -96,7 +102,7 @@ class App(QObject):
         for a in (self.act_session, self.act_week, self.act_status):
             menu.addAction(a)
         menu.addSeparator()
-        for a in (self.act_show, self.act_on_top, self.act_refresh):
+        for a in (self.act_show, self.act_setup, self.act_on_top, self.act_refresh):
             menu.addAction(a)
         menu.addSeparator()
         menu.addAction(self.act_quit)
@@ -120,6 +126,27 @@ class App(QObject):
         self.cfg["on_top"] = on
         self.dial.set_on_top(on)
         settings.save(self.cfg)
+
+    def open_setup(self):
+        if self.setup is None:
+            self.setup = SetupWindow(self.cfg)
+            self.setup.prefs_changed.connect(self.apply_prefs)
+        self.setup.show()
+        self.setup.raise_()
+        self.setup.activateWindow()
+        if not self.cfg["setup_seen"]:
+            self.cfg["setup_seen"] = True
+            settings.save(self.cfg)
+
+    def apply_prefs(self, prefs):
+        old_refresh = self.cfg["refresh_min"]
+        self.cfg.update(prefs)
+        settings.save(self.cfg)
+        if self.act_on_top.isChecked() != self.cfg["on_top"]:
+            self.act_on_top.setChecked(self.cfg["on_top"])  # also updates the dial
+        if self.cfg["refresh_min"] != old_refresh:
+            self.timer.start(self.cfg["refresh_min"] * 60_000)
+        self.render()
 
     def show_dial(self):
         self.dial.show()
@@ -159,6 +186,12 @@ class App(QObject):
         if usage:
             self.usage = usage
             self.updated = datetime.now()
+            self._error_prompted = None
+        elif error and error != self._error_prompted:
+            # Something is wrong (e.g. signed out): open Setup once per distinct problem.
+            self._error_prompted = error
+            self.open_setup()
+            self.setup.check()
         self.render()
 
     def render(self):
