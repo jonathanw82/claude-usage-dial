@@ -1,0 +1,18 @@
+[project]
+name = "claude-usage-dial"
+version = "0.1.0"
+description = "A desktop dial showing your Claude session and weekly usage"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["PySide6-Essentials"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B904"]  # re-raising UsageError with a clean message is intentional
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

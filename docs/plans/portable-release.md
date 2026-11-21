@@ -30,9 +30,9 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 
 ## Steps (one commit each; tests and lint green before each)
 
-- [ ] 0. `git init`, `.gitignore` (`.venv/`, `build/`, `dist/`, `__pycache__/`), commit the current GTK version as a baseline
+- [x] 0. `git init`, `.gitignore` (`.venv/`, `build/`, `dist/`, `__pycache__/`), commit the current GTK version as a baseline
   - Verify: `git log` shows the baseline commit
-- [ ] 1. Restructure into a package: `claude_usage/core.py` (no GUI: credentials, fetch, formatting, SVGs),
+- [x] 1. Restructure into a package: `claude_usage/core.py` (no GUI: credentials, fetch, formatting, SVGs),
       `.venv` + `requirements.txt` (pinned PySide6, pytest, ruff, pyinstaller)
   - Verify: `pytest` covers the parser (using a fixture from the real response shape), formatting, and that `dial_svg`
     is well-formed XML at 0/52/100 % and in the error state. `ruff check` is clean.
@@ -71,3 +71,5 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - **Repo name and app name:** e.g. `claude-usage-dial`.
 
 ## Deviations / notes
+- Step 1: `core.dial_svg` output is byte-identical to the GTK version's (checked at 3 states). Line length is 110
+  (the SVG strings), and `parse_usage` is split out of `fetch_usage` for testing. The tray ring now draws the % as text.

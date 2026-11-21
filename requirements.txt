@@ -1,0 +1,6 @@
+# Runtime
+PySide6-Essentials==6.12.0
+# Development / build
+pytest==9.2.0
+ruff==0.17.6
+pyinstaller==6.22.3
