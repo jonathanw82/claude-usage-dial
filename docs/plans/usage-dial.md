@@ -55,7 +55,7 @@ When a value is unknown, everything renders dimmed with `–%`.
 
 ## Deviations / notes
 - 2026-11-21: Steps 1–3 verified. Offline renders at 1/52/80/95 % and in the error state were checked.
-  A live screenshot shows transparent corners and real data. The top-bar ring was checked at the real 6 % (teal) and at a forced 80 % (amber).
+  A live screenshot shows transparent corners and real data. The top-bar ring was checked at a low real value (teal) and at a forced 80 % (amber).
 - Deviation: the plan said GdkPixbuf. That was soft at 2× scale, so the dial uses `Gio.BytesIcon` instead (see decisions.md).
 - Added beyond the plan: right-click opens the menu, R/F5 refreshes, and the tooltip shows the updated time.
 - 2026-11-21 (follow-up): Dial is now resizable by dragging its rim (aspect locked, 180–1200 px). It uses a
@@ -68,5 +68,5 @@ When a value is unknown, everything renders dimmed with `–%`.
   Verified with a live 600 px screenshot at 2× scale.
 - 2026-11-21 (follow-up 3): Size, position and always-on-top are saved to `~/.config/claude-usage/window.json`
   (debounced 0.5 s, atomic write). A position that is no longer on any monitor is ignored. "Always on top" is now
-  a menu toggle (default on). Verified: move/resize → quit → relaunch restores 1700,250 @ 480 px, and xprop
+  a menu toggle (default on). Verified: move/resize → quit → relaunch restores the same position @ 480 px, and xprop
   shows `_NET_WM_STATE_ABOVE`, which goes away when the toggle is unticked.

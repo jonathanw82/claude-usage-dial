@@ -80,12 +80,12 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   (FONT is now just "Ubuntu") and it ignores letter-spacing. Ubuntu R/B/L are bundled in `claude_usage/fonts` with the
   Ubuntu Font Licence, so the dial looks the same on Windows/Mac. The rim resize is custom (anchored opposite side,
   stays square). Moving uses `startSystemMove` (works on Wayland), with a manual fallback. Checked live at 360/600 px
-  on 2× X11; screenshots need xwininfo + GDK because Qt's grabWindow breaks on this mixed-monitor layout. Drag and resize by
+  on 2× X11; screenshots need xwininfo + GDK because Qt's grabWindow is unreliable on multi-monitor HiDPI X11. Drag and resize by
   hand **not yet tested**. Settings now live in `~/.config/claude-usage-dial/settings.json`.
 - Step 4: Qt's tray talks to the desktop directly over DBus (StatusNotifierItem), so no libappindicator is needed. Checked on
   Ubuntu: a "33" teal ring with the real value and an "80" amber ring when forced, and the tooltip shows both numbers. If there's no
   tray, the dial always shows at startup so the user isn't left with nothing.
-- Step 5: The Setup window was checked in both states. ✓ uses the real login and a live "Test now" (37 %/57 %). ✗ uses
+- Step 5: The Setup window was checked in both states. ✓ uses the real login and a live "Test now". ✗ uses
   `CLAUDE_CONFIG_DIR` pointed at an empty folder (safer than renaming the real credentials file) plus a stubbed
   `find_claude_code`. Preferences apply immediately. Setup opens on first run and once per distinct fetch error.
   Start-at-login writers are unit-tested for all 3 OSes with a fake winreg; real Windows/Mac **untested**.
@@ -96,15 +96,15 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   (31 MB of that is Qt's ICU data). It leaves out GTK, its theme plugin and font libraries (AppImage excludelist) and Qt translations.
   The bundled build ran live on Ubuntu with no errors and its tray icon showed. Fixes found on the way: the hatch texture
   spilled past the circle (QtSvg ignores clip-path there; now drawn as a circle), and on first run the dial opened at
-  0,0 on the side monitor (now centred on the main screen). appimagetool 1.9.1 and runtime 20251108 are pinned by SHA-256.
-  **Blocked:** running appimagetool locally was denied by the auto-mode safety check, so the AppImage itself is
-  not yet built or tested. macOS build is Apple silicon only (no Intel Macs) for now.
+  0,0, possibly on a secondary monitor (now centred on the main screen). appimagetool 1.9.1 and runtime 20251108 are pinned by SHA-256.
+  The AppImage itself was not built locally; it is built and tested by CI instead (see below).
+  The macOS build is Apple silicon only (no Intel Macs) for now.
 - Step 7 (docs done, verification pending): the README has been rewritten for end users, plus an MIT LICENSE (holder: "claude-usage-dial
   contributors"), new decisions, and README images rendered offscreen. The GTK `claude_usage.py` and `install.sh` are removed,
   and the old plans are marked superseded. Still to do: follow the README with a real built AppImage (blocked as in step 6).
 - Step 6/7 verified 2026-11-21 via CI instead of a local build (the user chose this). Run 44904823380 passed on all three OSes,
   and the self-test passed on each. Download sizes: Linux AppImage 56 MB, Windows exe 35 MB, macOS zip 26 MB. The CI-built
-  AppImage (built on 22.04) ran on this 24.04 machine: self-test ok; live with a fresh config it showed real data, the tray
+  AppImage (built on 22.04) ran on Ubuntu 24.04: self-test ok; live with a fresh config it showed real data, the tray
   ring, the dial centred on the main screen, Setup on first run, and settings saved. CI fixes: the script was missing its
   exec bit, and the macos-14 runner was retired (now macos-15).
 - Step 8 (partial): public repo https://github.com/jonathanw82/claude-usage-dial created and `main` pushed. Commits

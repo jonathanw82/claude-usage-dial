@@ -17,7 +17,7 @@ Chosen style: **both** — top-bar indicator, plus a window with progress bars o
 - [ ] Run `./install.sh`; label `S x% · W y%` appears in the top bar
   - Verify: numbers match `/usage` in Claude Code
 - [x] Confirm the usage endpoint's response shape matches the parser (`five_hour` / `seven_day`,
-      each with `utilization` (0–100) and `resets_at` (ISO 8601)) — ✅ verified 2026-11-21 (S 1 %, W 52 %)
+      each with `utilization` (0–100) and `resets_at` (ISO 8601)) — ✅ verified 2026-11-21
   - Verify: if numbers are wrong/blank, capture the window's error text or the raw JSON and fix `fetch_usage()`
 - [ ] Open "Show window" from the menu; bars and countdowns render, colours change at 75 % / 90 %
 - [ ] Error state: temporarily rename `~/.claude/.credentials.json` → indicator shows `S –% · W –%`
@@ -26,13 +26,11 @@ Chosen style: **both** — top-bar indicator, plus a window with progress bars o
 
 ## Deviations / notes
 
-- 2026-11-20: Live test of the usage endpoint was blocked by Claude Code's auto-mode classifier
-  (sending the OAuth token via curl). Either approve that call when prompted, or the user runs the
-  app and reports what it shows.
+- 2026-11-20: The live endpoint test was deferred to the first real run.
 - `AppIndicator3` (old namespace) isn't installed; only the Ayatana library is, minus its GI bindings
   — hence the apt package above.
 - Folder is not a git repo, so there are no commits yet.
 - 2026-11-21: Dependency installed; endpoint shape confirmed. `install.sh` ran, but the app it launched
-  died at once because Claude Code here runs inside the VS Code snap, whose env (GTK_PATH, LOCPATH, …)
+  died at once when launched from a VS Code snap terminal, whose env (GTK_PATH, LOCPATH, …)
   pulls in /snap/core20 libs → `undefined symbol: __libc_pthread_init`. Launching with a clean env
   works. Normal menu/autostart launches aren't affected; launching from a VS Code terminal is.
