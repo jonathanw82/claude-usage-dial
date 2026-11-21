@@ -36,7 +36,7 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
       `.venv` + `requirements.txt` (pinned PySide6, pytest, ruff, pyinstaller)
   - Verify: `pytest` covers the parser (using a fixture from the real response shape), formatting, and that `dial_svg`
     is well-formed XML at 0/52/100 % and in the error state. `ruff check` is clean.
-- [ ] 2. Per-OS credentials: file on Linux/Windows (respects `CLAUDE_CONFIG_DIR`), Keychain on macOS
+- [x] 2. Per-OS credentials: file on Linux/Windows (respects `CLAUDE_CONFIG_DIR`), Keychain on macOS
       with a file fallback, plus clear error messages for "Claude Code not installed" and "not signed in"
   - Verify: unit tests with mocked files and a mocked `security` command. A live check on Linux.
 - [ ] 3. Qt dial window: frameless, translucent, painted with `QSvgRenderer` at device pixels, and **masked
@@ -73,3 +73,6 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 ## Deviations / notes
 - Step 1: `core.dial_svg` output is byte-identical to the GTK version's (checked at 3 states). Line length is 110
   (the SVG strings), and `parse_usage` is split out of `fetch_usage` for testing. The tray ring now draws the % as text.
+- Step 2: An API-key login (no `claudeAiOauth`) now gets its own message, since usage limits only exist for subscriptions.
+  `find_claude_code()` also checks the usual install folders, because apps started from a menu or Finder get a short PATH.
+  The macOS Keychain path is covered by unit tests only (still **unverified on a real Mac**).
