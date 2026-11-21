@@ -39,7 +39,7 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - [x] 2. Per-OS credentials: file on Linux/Windows (respects `CLAUDE_CONFIG_DIR`), Keychain on macOS
       with a file fallback, plus clear error messages for "Claude Code not installed" and "not signed in"
   - Verify: unit tests with mocked files and a mocked `security` command. A live check on Linux.
-- [ ] 3. Qt dial window: frameless, translucent, painted with `QSvgRenderer` at device pixels, and **masked
+- [x] 3. Qt dial window: frameless, translucent, painted with `QSvgRenderer` at device pixels, and **masked
       to a circle** (fixes the corners catching clicks). Drag to move, rim-resize, double-click/Esc to hide, right-click menu,
       size/position/on-top remembered (JSON in the OS config dir)
   - Verify: run from `.venv` on this machine and take screenshots at 360 and 600 px. Check that position and size persist.
@@ -76,3 +76,9 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - Step 2: An API-key login (no `claudeAiOauth`) now gets its own message, since usage limits only exist for subscriptions.
   `find_claude_code()` also checks the usual install folders, because apps started from a menu or Finder get a short PATH.
   The macOS Keychain path is covered by unit tests only (still **unverified on a real Mac**).
+- Step 3: QtSvg renders the dial faithfully, including the glow filter and gradients. Two Qt quirks: it ignores font *lists*
+  (FONT is now just "Ubuntu") and it ignores letter-spacing. Ubuntu R/B/L are bundled in `claude_usage/fonts` with the
+  Ubuntu Font Licence, so the dial looks the same on Windows/Mac. The rim resize is custom (anchored opposite side,
+  stays square). Moving uses `startSystemMove` (works on Wayland), with a manual fallback. Checked live at 360/600 px
+  on 2× X11; screenshots need xwininfo + GDK because Qt's grabWindow breaks on this mixed-monitor layout. Drag and resize by
+  hand **not yet tested**. Settings now live in `~/.config/claude-usage-dial/settings.json`.

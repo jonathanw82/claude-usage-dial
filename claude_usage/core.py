@@ -94,7 +94,7 @@ def fmt_reset(dt):
 TEAL, AMBER, RED, DIM = "#3ee6c9", "#f5b041", "#ff5a5f", "#4a5557"
 SCALE = ["#3ee6c9", "#3ee6c9", "#4fe08a", "#7fdc4f", "#c6e042",
          "#f2d43d", "#f5b041", "#f58a3c", "#f26a45", "#ff5a5f"]
-FONT = "Ubuntu, 'DejaVu Sans', sans-serif"
+FONT = "Ubuntu"  # bundled (claude_usage/fonts); Qt's SVG renderer ignores font lists
 DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 
