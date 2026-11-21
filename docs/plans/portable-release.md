@@ -99,3 +99,6 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
   0,0 on the side monitor (now centred on the main screen). appimagetool 1.9.1 and runtime 20251108 are pinned by SHA-256.
   **Blocked:** running appimagetool locally was denied by the auto-mode safety check, so the AppImage itself is
   not yet built or tested. macOS build is Apple silicon only (no Intel Macs) for now.
+- Step 7 (docs done, verification pending): the README has been rewritten for end users, plus an MIT LICENSE (holder: "claude-usage-dial
+  contributors"), new decisions, and README images rendered offscreen. The GTK `claude_usage.py` and `install.sh` are removed,
+  and the old plans are marked superseded. Still to do: follow the README with a real built AppImage (blocked as in step 6).

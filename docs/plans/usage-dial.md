@@ -1,5 +1,7 @@
 # Plan: smartwatch-style usage dial
 
+> **Superseded (2026-11-21):** the GTK app this plan describes has been replaced by the Qt version — see `portable-release.md`.
+
 Goal: replace the plain progress-bar window with a polished round dial modelled on the reference
 watch face (dark face, teal accents, segmented arcs, a colour-scale bar, a small ring), and give
 the top-bar indicator a mini ring icon.

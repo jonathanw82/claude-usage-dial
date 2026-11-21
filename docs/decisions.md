@@ -32,3 +32,26 @@
   large sizes. With the intrinsic size matching the screen, the mapping is 1:1.
 - **Rejected:** re-rendering on every resize step (librsvg with blur filters at ~1200 px is too
   slow to do on every drag frame).
+
+## 2026-11-21 — Port to Qt (PySide6) + PyInstaller for a portable Linux/Windows/macOS release
+- **Decision:** replace the GTK3 + AyatanaAppIndicator front end with PySide6 (QtWidgets, QtSvg,
+  QSystemTrayIcon) and ship self-contained builds made by PyInstaller: an AppImage on Linux, a single .exe
+  on Windows, and a .app on macOS. These are built by GitHub Actions on `v*` tags. GUI-free logic lives in
+  `claude_usage/core.py` and `credentials.py`.
+- **Why:** the user wants anyone to download and run it with nothing else installed. GTK and Ayatana can't be
+  bundled reliably and don't exist on Windows or macOS. Qt bundles fully on all three OSes. Its tray uses
+  StatusNotifierItem over DBus directly, so Linux needs no libappindicator. The dial SVG carries over unchanged.
+- **Rejected:** keeping GTK in an AppImage (Linux only); Electron (heavy, and the dial would need rewriting);
+  Tauri (needs webkit2gtk on Linux); snap/flatpak (confinement blocks reading `~/.claude` without
+  store approval, and flatpak isn't preinstalled on Ubuntu).
+- **Trade-offs:** tray icons can't show text, so the session % is drawn into the ring icon. Downloads are about
+  130 MB unpacked (the AppImage is compressed). Builds aren't code-signed, so SmartScreen and Gatekeeper warn on first launch.
+  Supersedes the 2026-11-20 GTK UI decision and the GIcon/device-pixel notes (Qt renders via `QSvgRenderer`
+  at device pixels).
+
+## 2026-11-21 — macOS login from the Keychain; bundled Ubuntu font
+- **Decision:** on macOS, read the Keychain item `Claude Code-credentials` with the system `security`
+  tool, falling back to `~/.claude/.credentials.json`. Bundle the Ubuntu R/B/L fonts.
+- **Why:** Claude Code on macOS stores its login in the Keychain, and `security` needs no extra dependency.
+  QtSvg ignores font fallback lists, so without a bundled font the dial would look different on each OS.
+- **Unverified:** the Keychain path hasn't been tested on a real Mac.

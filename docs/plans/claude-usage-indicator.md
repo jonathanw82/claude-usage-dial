@@ -1,5 +1,7 @@
 # Plan: Claude usage indicator (Ubuntu top bar + window)
 
+> **Superseded (2026-11-21):** the GTK app this plan describes has been replaced by the Qt version — see `portable-release.md`.
+
 Goal: show Claude current-session (5h) % and this-week (7d) % on the Ubuntu 24.04 GNOME desktop.
 Chosen style: **both** — top-bar indicator, plus a window with progress bars opened from its menu.
 
