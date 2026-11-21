@@ -8,12 +8,13 @@ sys.path.insert(0, str(ROOT))
 from claude_usage import __version__  # noqa: E402
 
 NAME = "claude-usage-dial"
-ICON = str(ROOT / "packaging" / "icon.png")  # converted to .ico/.icns by Pillow
+ICON = str(ROOT / "claude_usage" / "icon.png")  # converted to .ico/.icns by Pillow
 
 a = Analysis(
     [str(ROOT / "packaging" / "run.py")],
     pathex=[str(ROOT)],
-    datas=[(str(ROOT / "claude_usage" / "fonts"), "claude_usage/fonts")],
+    datas=[(str(ROOT / "claude_usage" / "fonts"), "claude_usage/fonts"),
+           (str(ROOT / "claude_usage" / "icon.png"), "claude_usage")],
     # Only QtCore/Gui/Widgets/Svg are used; keep the rest of Qt out of the bundle.
     excludes=["PySide6.QtNetwork", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtPdf",
               "PySide6.QtOpenGL", "tkinter"],

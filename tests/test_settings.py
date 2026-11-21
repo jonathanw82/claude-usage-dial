@@ -36,3 +36,10 @@ def test_corrupt_file_gives_defaults(cfg):
     (cfg / "cfg").mkdir()
     (cfg / "cfg" / "settings.json").write_text("{nope")
     assert settings.load() == settings.DEFAULTS
+
+
+def test_last_cmd_round_trip_and_validation():
+    settings.save(settings.load() | {"last_cmd": ["/apps/Claude.AppImage"]})
+    assert settings.load()["last_cmd"] == ["/apps/Claude.AppImage"]
+    settings.save({"last_cmd": "not-a-list"})
+    assert settings.load()["last_cmd"] is None

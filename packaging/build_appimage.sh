@@ -24,7 +24,7 @@ APPDIR=build/AppDir
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/lib"
 cp -a dist/claude-usage-dial "$APPDIR/usr/lib/claude-usage-dial"
-cp packaging/icon.png "$APPDIR/claude-usage-dial.png"
+cp claude_usage/icon.png "$APPDIR/claude-usage-dial.png"
 cat > "$APPDIR/claude-usage-dial.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application

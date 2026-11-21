@@ -1,4 +1,4 @@
-"""Render packaging/icon.png (512 px) from the dial's styling. Run: python packaging/make_icon.py"""
+"""Render claude_usage/icon.png (512 px) from the dial's styling. Run: python packaging/make_icon.py"""
 import math
 import sys
 from pathlib import Path
@@ -33,6 +33,6 @@ SVG = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="5
 
 if __name__ == "__main__":
     app = QApplication([])
-    out = Path(__file__).with_name("icon.png")
+    out = Path(__file__).resolve().parent.parent / "claude_usage" / "icon.png"
     svg_pixmap(SVG, 512).save(str(out))
     print("wrote", out)

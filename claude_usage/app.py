@@ -10,7 +10,7 @@ from PySide6.QtGui import QAction, QFontDatabase, QIcon, QImage, QPainter, QPixm
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
-from . import core, settings
+from . import autostart, core, launcher, settings
 from .credentials import UsageError
 from .dial import DialWindow
 from .setup_window import SetupWindow
@@ -83,8 +83,31 @@ class App(QObject):
             self.show_dial()
         self.render()
         self.refresh()
+        self._sync_shortcuts()
         if not self.cfg["setup_seen"]:  # first run: guide the user
             self.open_setup()
+
+    def _sync_shortcuts(self):
+        """First run of a packaged build: add the Start/app-menu entry. Later runs: if the app
+        file was moved since last time, re-point the menu entry and start-at-login at it."""
+        cmd = autostart.launch_command()
+        first_run = not self.cfg["setup_seen"]
+        moved = self.cfg["last_cmd"] is not None and self.cfg["last_cmd"] != cmd
+        packaged = getattr(sys, "frozen", False)
+        self.cfg["last_cmd"] = cmd
+        settings.save(self.cfg)
+
+        def work():  # PowerShell on Windows can take a second; keep it off the UI thread
+            try:
+                if launcher.supported() and ((first_run and packaged) or
+                                             (moved and launcher.is_installed())):
+                    launcher.install(command=cmd)
+                if moved and autostart.is_enabled():
+                    autostart.set_enabled(True, command=cmd)
+            except OSError:
+                pass  # not fatal; the Setup window lets the user retry
+
+        threading.Thread(target=work, daemon=True).start()
 
     # -- menu --------------------------------------------------------------
 
@@ -243,6 +266,8 @@ def main(argv=None):
         os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     qapp = QApplication(argv)
     qapp.setApplicationName(settings.APP_DIR_NAME)
+    qapp.setDesktopFileName(launcher.NAME)  # lets Linux desktops match windows to the menu entry
+    qapp.setWindowIcon(QIcon(str(launcher.ICON_SRC)))
     qapp.setQuitOnLastWindowClosed(False)  # hiding the dial must not quit the app
     load_fonts()
     if "--self-test" in argv:

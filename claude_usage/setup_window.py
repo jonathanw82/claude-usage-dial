@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import __version__, autostart, core, credentials
+from . import __version__, autostart, core, credentials, launcher
 from .credentials import UsageError
 
 OK, BAD = "#2e9e6b", "#d9534f"
@@ -97,12 +97,15 @@ class SetupWindow(QWidget):
         prefs = QGroupBox("3. Preferences")
         form = QFormLayout(prefs)
         self.start_login = QCheckBox("Start when I log in")
+        self.in_menu = QCheckBox(launcher.label())
+        self.in_menu.setVisible(launcher.supported())  # macOS: Applications/Launchpad already
         self.on_top = QCheckBox("Keep the dial on top of other windows")
         self.show_start = QCheckBox("Show the dial when the app starts")
         self.refresh = self._spin(1, 60, " min")
         self.warn = self._spin(1, 99, " %")
         self.crit = self._spin(2, 100, " %")
         form.addRow(self.start_login)
+        form.addRow(self.in_menu)
         form.addRow(self.on_top)
         form.addRow(self.show_start)
         form.addRow("Refresh every", self.refresh)
@@ -137,6 +140,7 @@ class SetupWindow(QWidget):
         for w in (self.refresh, self.warn, self.crit):
             w.valueChanged.connect(self._prefs_edited)
         self.start_login.toggled.connect(self._autostart_toggled)
+        self.in_menu.toggled.connect(self._menu_toggled)
         self.check()
         self._fit()
 
@@ -194,11 +198,12 @@ class SetupWindow(QWidget):
     # -- preferences -----------------------------------------------------------
 
     def load_prefs(self):
-        widgets = (self.start_login, self.on_top, self.show_start, self.refresh, self.warn,
+        widgets = (self.start_login, self.in_menu, self.on_top, self.show_start, self.refresh, self.warn,
                    self.crit)
         for w in widgets:
             w.blockSignals(True)
         self.start_login.setChecked(autostart.is_enabled())
+        self.in_menu.setChecked(launcher.is_installed())
         self.on_top.setChecked(self.cfg["on_top"])
         self.show_start.setChecked(self.cfg["show_dial_at_start"])
         self.refresh.setValue(self.cfg["refresh_min"])
@@ -235,6 +240,17 @@ class SetupWindow(QWidget):
     def _fit(self):
         self.layout().activate()
         self.adjustSize()
+
+    def _menu_toggled(self, on):
+        try:
+            launcher.install() if on else launcher.remove()
+            self.autostart_error.hide()
+        except OSError as e:
+            self.autostart_error.setText(str(e))
+            self.autostart_error.show()
+            self.in_menu.blockSignals(True)
+            self.in_menu.setChecked(launcher.is_installed())
+            self.in_menu.blockSignals(False)
 
     def showEvent(self, ev):
         self.load_prefs()  # e.g. "Always on top" may have been changed from the menu

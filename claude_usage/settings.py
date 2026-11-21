@@ -19,6 +19,7 @@ DEFAULTS = {
     "crit": CRIT_PCT,
     "show_dial_at_start": True,
     "setup_seen": False,    # Setup window opens by itself until it has been seen once
+    "last_cmd": None,       # how the app was last launched; if it moves, menu/autostart are fixed
 }
 
 LIMITS = {"size": (180, 1200), "refresh_min": (1, 60), "warn": (1, 99), "crit": (2, 100)}
@@ -46,7 +47,10 @@ def _clean(data):
         return out
     for key, default in DEFAULTS.items():
         val = data.get(key)
-        if key in ("x", "y"):
+        if key == "last_cmd":
+            if isinstance(val, list) and all(isinstance(v, str) for v in val):
+                out[key] = val
+        elif key in ("x", "y"):
             if isinstance(val, int) and not isinstance(val, bool):
                 out[key] = val
         elif isinstance(default, bool):
