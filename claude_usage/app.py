@@ -212,10 +212,12 @@ class App(QObject):
             self.updated = datetime.now()
             self._error_prompted = None
         elif error and error != self._error_prompted:
-            # Something is wrong (e.g. signed out): open Setup once per distinct problem.
+            # Something is wrong (e.g. login expired): open Setup once per distinct problem.
             self._error_prompted = error
             self.open_setup()
-            self.setup.check()
+        if self.setup is not None and self.setup.isVisible():
+            self.setup.check()  # keep its ✓/✗ current without pressing Re-check
+            self.setup._fit()
         self.render()
 
     def render(self):

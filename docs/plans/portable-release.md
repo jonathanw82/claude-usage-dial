@@ -121,3 +121,17 @@ approved stays exactly the same. Only the GTK window, indicator and installer ge
 - v0.1.1 released 2026-11-21: https://github.com/jonathanw82/claude-usage-dial/releases/tag/v0.1.1 (AppImage 57 MB,
   exe 38 MB, macOS zip 27 MB). The CI-built AppImage is installed in ~/Applications on the dev machine. Opening it via
   `gtk-launch claude-usage-dial` while it was running kept one copy.
+
+## Follow-up: "not logged in" after a reboot (2026-11-22)
+Cause: Claude Code's access token lasts ~8 h and only Claude Code renews it. After a reboot, the dial autostarted with
+yesterday's expired token, and Setup showed ✗ next to "Signed in to Claude Code", which reads as "not logged in".
+- [x] 1. Separate the "expired" state from "not signed in" (`LoginExpired`, and `login_status()` returns ok/expired/message).
+      HTTP 401/403 is treated as expired too. Setup shows an amber "!" with a plain explanation; the dial message fits in 3 lines.
+  - Verified: unit tests, plus Setup and the dial rendered with a fake expired login in a throwaway `CLAUDE_CONFIG_DIR`.
+- [x] 3. Setup re-checks on every refresh.
+  - Verified: started on the expired login, switched to the real one and refreshed: "!" became ✓ and data returned.
+- [ ] 2. Auto-renew by running Claude Code's own `claude auth status` when the login has expired, **only if** it
+      actually renews an expired login (it didn't rewrite the file while the token was still valid). The user will test after expiry:
+      run `claude auth status --text` before opening Claude Code and see whether the dial recovers. Never
+      copy or refresh the login ourselves: refresh-token rotation could sign the user out of Claude Code.
+- [ ] Release v0.1.2 with the above.

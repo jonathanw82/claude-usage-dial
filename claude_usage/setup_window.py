@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 from . import __version__, autostart, core, credentials, launcher
 from .credentials import UsageError
 
-OK, BAD = "#2e9e6b", "#d9534f"
+OK, WARN, BAD = "#2e9e6b", "#e6a23c", "#d9534f"
 CLAUDE_CODE_URL = "https://claude.com/claude-code"
 
 PRIVACY = (
@@ -53,9 +53,9 @@ def _status_row(title):
     return row, mark, detail
 
 
-def _set_mark(label, ok):
-    label.setText(f'<span style="color:{OK if ok else BAD}; font-size:16px">'
-                  f'{"✓" if ok else "✗"}</span>')
+def _set_mark(label, ok, warn=False):
+    colour, mark = (OK, "✓") if ok else (WARN, "!") if warn else (BAD, "✗")
+    label.setText(f'<span style="color:{colour}; font-size:16px">{mark}</span>')
 
 
 class SetupWindow(QWidget):
@@ -161,12 +161,22 @@ class SetupWindow(QWidget):
             f'Not found. Install it from <a href="{CLAUDE_CODE_URL}">{CLAUDE_CODE_URL}</a>, '
             "then press Re-check. (If you installed it somewhere unusual this can be wrong "
             "- what matters is the sign-in check below.)")
-        ok, msg = credentials.login_status()
-        _set_mark(self.login_mark, ok)
-        self.login_detail.setText(msg if ok else (
-            f"{msg}.<br>Fix: open a terminal, run <code>claude</code> and sign in with your "
-            "Claude account (type <code>/login</code> if it doesn't ask). Then press Re-check."))
-        return ok
+        st = credentials.login_status()
+        _set_mark(self.login_mark, st.ok, warn=st.expired)
+        if st.ok:
+            self.login_detail.setText(st.message)
+        elif st.expired:
+            self.login_detail.setText(
+                "Claude Code is signed in, but its login has <b>expired</b>. This is normal "
+                "after a restart or a few hours without using Claude Code: the login only lasts "
+                "a few hours and only Claude Code renews it.<br>Fix: open Claude Code once (any "
+                "session). The dial picks up the renewed login on its next refresh.")
+        else:
+            self.login_detail.setText(
+                f"{st.message}.<br>Fix: open a terminal, run <code>claude</code> and sign in with "
+                "your Claude account (type <code>/login</code> if it doesn't ask). "
+                "Then press Re-check.")
+        return st.ok
 
     # -- connection ------------------------------------------------------------
 

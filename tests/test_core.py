@@ -78,3 +78,22 @@ def test_dial_svg_error_state_escapes_message():
 @pytest.mark.parametrize("pct", [None, 0, 6, 80, 100, 140])
 def test_ring_svg_is_well_formed(pct):
     ET.fromstring(core.ring_svg(pct))
+
+
+def test_http_401_means_login_expired(monkeypatch):
+    import io
+    import urllib.error
+
+    from claude_usage.credentials import LoginExpired
+
+    def reject(*_a, **_k):
+        raise urllib.error.HTTPError(core.USAGE_URL, 401, "Unauthorized", {}, io.BytesIO(b""))
+
+    monkeypatch.setattr(core.urllib.request, "urlopen", reject)
+    with pytest.raises(LoginExpired, match="renew"):
+        core.fetch_usage(token="t")
+
+
+def test_expired_message_fits_on_the_dial():
+    from claude_usage.credentials import LoginExpired
+    assert len(core._wrap(str(LoginExpired()), 36)) <= 3  # the dial shows at most 3 lines

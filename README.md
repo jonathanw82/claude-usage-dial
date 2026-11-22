@@ -65,8 +65,9 @@ It uses that token for one thing only: asking `api.anthropic.com` for your usage
 numbers `/usage` shows in Claude Code. The token is never stored anywhere else, never changed, and
 never sent anywhere else. The app has no analytics and talks to no other server.
 
-Claude Code renews the token whenever you use it. If you haven't used Claude Code for a while, the dial
-says *Login expired*. Open Claude Code once and it recovers on the next refresh.
+The token only lasts a few hours, and only Claude Code renews it, whenever you use it. So after a restart, or
+a few hours without using Claude Code, the dial says *Login expired* and Setup shows an amber **!**. This
+doesn't mean you're signed out. Open Claude Code once and the dial recovers on its next refresh by itself.
 
 **Unofficial:** the usage service isn't publicly documented. If Anthropic changes it, the dial will
 show an error until the app is updated.

@@ -12,6 +12,7 @@ import os
 import platform
 import shutil
 import subprocess
+from collections import namedtuple
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -20,6 +21,17 @@ KEYCHAIN_SERVICE = "Claude Code-credentials"
 
 class UsageError(Exception):
     """A problem with a message that is safe and useful to show the user."""
+
+
+class LoginExpired(UsageError):
+    """Claude Code is signed in, but its short-lived login token has run out.
+    Only Claude Code renews it (whenever it is used), so this fixes itself once it runs."""
+
+    def __init__(self, msg="Login expired - open Claude Code once to renew it"):
+        super().__init__(msg)
+
+
+LoginStatus = namedtuple("LoginStatus", "ok expired message")
 
 
 def config_dir():
@@ -74,18 +86,20 @@ def read_token(run=subprocess.run, now=None):
     expires = oauth.get("expiresAt")
     now = now or datetime.now(timezone.utc)
     if isinstance(expires, (int, float)) and expires / 1000 < now.timestamp():
-        raise UsageError("Login expired - open Claude Code once to refresh it")
+        raise LoginExpired()
     return token
 
 
-def login_status(run=subprocess.run):
-    """(ok, message) for the Setup window, without exposing the token."""
+def login_status(run=subprocess.run, now=None):
+    """LoginStatus(ok, expired, message) for the Setup window, without exposing the token."""
     try:
-        read_token(run)
+        read_token(run, now)
+    except LoginExpired as e:
+        return LoginStatus(False, True, str(e))
     except UsageError as e:
-        return False, str(e)
+        return LoginStatus(False, False, str(e))
     _data, where = _load_credentials(run)
-    return True, f"Signed in (login found in {where})"
+    return LoginStatus(True, False, f"Signed in (login found in {where})")
 
 
 def _candidates():

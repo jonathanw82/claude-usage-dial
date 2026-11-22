@@ -57,10 +57,17 @@ def test_api_key_login_is_explained(home):
         cr.read_token()
 
 
-def test_expired_token(home):
+def test_expired_token_is_its_own_error(home):
     write_creds(home / ".claude", {"claudeAiOauth": {"accessToken": "t", "expiresAt": 1000}})
-    with pytest.raises(UsageError, match="expired"):
+    with pytest.raises(cr.LoginExpired, match="expired"):
         cr.read_token(now=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    st = cr.login_status(now=datetime(2026, 1, 1, tzinfo=timezone.utc))
+    assert (st.ok, st.expired) == (False, True)
+
+
+def test_not_signed_in_is_not_expired(home):
+    st = cr.login_status()
+    assert (st.ok, st.expired) == (False, False) and "Not signed in" in st.message
 
 
 def test_macos_reads_keychain_first(home, monkeypatch):
@@ -84,8 +91,8 @@ def test_macos_falls_back_to_file(home, monkeypatch):
 
 def test_login_status_never_contains_token(home):
     write_creds(home / ".claude", GOOD)
-    ok, msg = cr.login_status()
-    assert ok and "tok-123" not in msg
+    st = cr.login_status()
+    assert st.ok and not st.expired and "tok-123" not in st.message
 
 
 def test_find_claude_code_checks_usual_places(home, monkeypatch):

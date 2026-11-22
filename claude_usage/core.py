@@ -10,7 +10,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
-from .credentials import UsageError, read_token
+from .credentials import LoginExpired, UsageError, read_token
 
 USAGE_URL = "https://api.anthropic.com/api/oauth/usage"
 WARN_PCT = 75
@@ -58,8 +58,8 @@ def fetch_usage(token=None, timeout=20):
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = json.load(resp)
     except urllib.error.HTTPError as e:
-        if e.code in (401, 403):
-            raise UsageError("Login rejected - open Claude Code once to refresh it")
+        if e.code in (401, 403):  # token expired or revoked server-side: same fix
+            raise LoginExpired("Login not accepted - open Claude Code once to renew it")
         raise UsageError(f"Usage service returned HTTP {e.code}")
     except (urllib.error.URLError, TimeoutError, OSError) as e:
         raise UsageError(f"Network error: {getattr(e, 'reason', e)}")
