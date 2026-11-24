@@ -134,4 +134,4 @@ yesterday's expired token, and Setup showed ✗ next to "Signed in to Claude Cod
       actually renews an expired login (it didn't rewrite the file while the token was still valid). The user will test after expiry:
       run `claude auth status --text` before opening Claude Code and see whether the dial recovers. Never
       copy or refresh the login ourselves: refresh-token rotation could sign the user out of Claude Code.
-- [ ] Release v0.1.2 with the above.
+- [x] Release v0.1.2 with steps 1 and 3 (2026-11-24). Step 2 is still waiting on the user's test after a reboot.
